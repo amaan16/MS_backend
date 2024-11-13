@@ -41,6 +41,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+var summaries = new[]
+{
+    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+};
+
 app.MapGet("/Reset", () =>
 {
     using(DbContext movies = new MSContext())
@@ -65,6 +70,15 @@ app.MapGet("/Reset", () =>
         movies.SaveChanges();
         movies.SaveChanges();
         movies.Database.ExecuteSqlRaw("PRAGMA wal_checkpoint;");
+        var forecast =  Enumerable.Range(1, 5).Select(index =>
+        new WeatherForecast
+        (
+            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            Random.Shared.Next(-20, 55),
+            summaries[Random.Shared.Next(summaries.Length)]
+        ))
+        .ToArray();
+    return forecast;
         
     }
 
@@ -72,10 +86,7 @@ app.MapGet("/Reset", () =>
 .WithName("Reset Data")
 .WithOpenApi();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+
 
 app.MapGet("/weatherforecast", () =>
 {
