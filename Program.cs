@@ -70,20 +70,37 @@ app.MapGet("/Reset", () =>
         movies.SaveChanges();
         movies.SaveChanges();
         movies.Database.ExecuteSqlRaw("PRAGMA wal_checkpoint;");
-        var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    //     var forecast =  Enumerable.Range(1, 5).Select(index =>
+    //     new WeatherForecast
+    //     (
+    //         DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+    //         Random.Shared.Next(-20, 55),
+    //         summaries[Random.Shared.Next(summaries.Length)]
+    //     ))
+    //     .ToArray();
+    // return forecast;
         
     }
 
 })
 .WithName("Reset Data")
+.WithOpenApi();
+
+app.MapGet("/movies/{tag}", (string tag) =>
+{
+    var options = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true
+    };
+    using(MSContext movie = new MSContext())
+    {          
+        List<Movie>? source = movie.Movies
+                                   .Where(m => m.Tag.ToLower() == tag.ToLower()) 
+                                   .ToList();
+        return source;
+    }  
+})
+.WithName("Get Movies")
 .WithOpenApi();
 
 
