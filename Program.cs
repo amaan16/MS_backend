@@ -33,15 +33,25 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/movies/{tag}", async (MSContext db, string tag) =>
+var summaries = new[]
 {
-    var movies = await db.Movies
-                         .Where(movie => movie.Tag == tag)
-                         .ToListAsync();
+    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+};
 
-    return movies.Any() ? Results.Ok(movies) : Results.NotFound("No movies found with the specified tag.");
-});
-
+app.MapGet("/weatherforecast", () =>
+{
+    var forecast =  Enumerable.Range(1, 5).Select(index =>
+        new WeatherForecast
+        (
+            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            Random.Shared.Next(-20, 55),
+            summaries[Random.Shared.Next(summaries.Length)]
+        ))
+        .ToArray();
+    return forecast;
+})
+.WithName("GetWeatherForecast")
+.WithOpenApi();
 
 app.Run();
 
