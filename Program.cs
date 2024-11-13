@@ -1,5 +1,13 @@
 using MovieScore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text;
+using MovieScore.Models;
+using MovieScore;
+
 
 
 
@@ -32,6 +40,37 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapGet("/Reset", () =>
+{
+    using(DbContext movies = new MSContext())
+    {
+        movies.Database.EnsureDeleted();
+        movies.Database.EnsureCreated();
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        using (StreamReader r = new StreamReader("movieData.json"))  
+        {  
+            string? json = r.ReadToEnd();  
+            List<Movie>? source = JsonSerializer.Deserialize<List<Movie>>(json, options); 
+            foreach(var item in source)
+            {
+                movies.Add<Movie>(item);  
+            }
+            
+        }  
+        movies.SaveChanges();
+        movies.SaveChanges();
+        movies.Database.ExecuteSqlRaw("PRAGMA wal_checkpoint;");
+        
+    }
+
+})
+.WithName("Reset Data")
+.WithOpenApi();
 
 var summaries = new[]
 {
